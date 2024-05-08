@@ -35,7 +35,7 @@ pub struct TaskInfo {
     /// pub status: TaskStatus,
     /// The number of syscalls called by the task
     pub syscall_times: [u32; MAX_SYSCALL_NUM],
-    /// The time from now to the first syscall of task
+    /// The time of first syscall
     pub time: usize,
 }
 
