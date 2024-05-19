@@ -16,6 +16,7 @@ mod task;
 
 use crate::loader::{get_app_data, get_num_app};
 use crate::sync::UPSafeCell;
+use crate::timer::get_time_ms;
 use crate::trap::TrapContext;
 use alloc::vec::Vec;
 use lazy_static::*;
@@ -23,6 +24,8 @@ use switch::__switch;
 pub use task::{TaskControlBlock, TaskStatus};
 
 pub use context::TaskContext;
+
+use self::task::TaskInfo;
 
 /// The task manager, where all the tasks are managed.
 ///
@@ -153,6 +156,21 @@ impl TaskManager {
             panic!("All applications completed!");
         }
     }
+
+    fn get_task_info(&self) -> TaskInfo {
+        let mut inner = self.inner.exclusive_access();
+        let current = inner.current_task;
+        let current_time = get_time_ms();
+        inner.tasks[current].task_info.set_time(current_time);
+        let task_info = inner.tasks[current].task_info.clone();
+        task_info
+    }
+
+    fn add_syscall_time(&self, syscall_id: usize) {
+        let mut inner = self.inner.exclusive_access();
+        let current = inner.current_task;
+        inner.tasks[current].task_info.add_syscall_time(syscall_id);
+    }
 }
 
 /// Run the first task in task list.
@@ -193,12 +211,22 @@ pub fn current_user_token() -> usize {
     TASK_MANAGER.get_current_token()
 }
 
-/// Get the current 'Running' task's trap contexts.
-pub fn current_trap_cx() -> &'static mut TrapContext {
-    TASK_MANAGER.get_current_trap_cx()
-}
-
 /// Change the current 'Running' task's program break
 pub fn change_program_brk(size: i32) -> Option<usize> {
     TASK_MANAGER.change_current_program_brk(size)
+}
+
+/// Get the task information of the current 'Running' task.
+pub fn get_task_info() -> TaskInfo {
+    TASK_MANAGER.get_task_info()
+}
+
+/// Add syscall_time by 1
+pub fn add_syscall_time(syscall_id: usize) {
+    TASK_MANAGER.add_syscall_time(syscall_id);
+}
+
+/// Get the current 'Running' task's trap contexts.
+pub fn current_trap_cx() -> &'static mut TrapContext {
+    TASK_MANAGER.get_current_trap_cx()
 }
