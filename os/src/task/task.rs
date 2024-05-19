@@ -136,7 +136,7 @@ impl TaskInfo {
         TaskInfo {
             status: TaskStatus::Running,
             syscall_times: [0; MAX_SYSCALL_NUM],
-            time: get_time_ms(),
+            time: 0,
         }
     }
 
