@@ -208,10 +208,6 @@ impl TaskManager {
             return -1;
         }
 
-        // if memory_set.include_unallocated(start_va, end_va) {
-        //     return -1;
-        // }
-
         memory_set.free_framed_area(start_va, end_va);
         0
     }

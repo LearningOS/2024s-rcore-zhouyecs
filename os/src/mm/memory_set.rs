@@ -63,20 +63,6 @@ impl MemorySet {
             None,
         );
     }
-    /// Check if memory range include allocated memory
-    pub fn include_allocated(&self, start_address: VirtAddr, end_address: VirtAddr) -> bool {
-        self.areas.iter().any(|area| {
-            area.vpn_range.get_end() > start_address.floor()
-                && area.vpn_range.get_start() < end_address.ceil()
-        })
-    }
-    /// Check if memory range include unallocated memory
-    pub fn include_unallocated(&self, start_address: VirtAddr, end_address: VirtAddr) -> bool {
-        self.areas.iter().any(|area| {
-            area.vpn_range.get_end() <= start_address.floor()
-                || area.vpn_range.get_start() >= end_address.ceil()
-        })
-    }
     /// Free the virtual memory area
     pub fn free_framed_area(&mut self, start_va: VirtAddr, end_va: VirtAddr) {
         let virtual_page_start = start_va.floor();
@@ -90,6 +76,13 @@ impl MemorySet {
             self.areas[index].unmap(&mut self.page_table);
             self.areas.remove(index);
         }
+    }
+    /// Check if memory range include allocated memory
+    pub fn include_allocated(&self, start_address: VirtAddr, end_address: VirtAddr) -> bool {
+        self.areas.iter().any(|area| {
+            area.vpn_range.get_end() > start_address.floor()
+                && area.vpn_range.get_start() < end_address.ceil()
+        })
     }
     fn push(&mut self, mut map_area: MapArea, data: Option<&[u8]>) {
         map_area.map(&mut self.page_table);
